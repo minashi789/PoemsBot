@@ -16,6 +16,10 @@ func StartBot(botToken string) {
 		log.Panic(err)
 	}
 
+	if err := LoadPoemsFromFile("poems.json"); err != nil {
+		Logger.Printf("Ошибка загрузки стихов: %v", err)
+	}
+
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -125,7 +129,7 @@ func StartBot(botToken string) {
 				Logger.Printf("Пользователь %s (%d) выполнил команду /help", update.Message.From.UserName, update.Message.From.ID)
 				bot.Send(msg) // Переносим отправку сообщения сюда
 			default:
-				emotion := ConvertToEmotionKey(update.Message.Text)
+				emotion := update.Message.Text
 				Logger.Printf("Преобразованная эмоция: %s", emotion)
 				if poem, exists := GetRandomPoemByEmotion(emotion); exists {
 					msg.Text = poem

@@ -26,10 +26,11 @@ func getRandomGenerator() *rand.Rand {
 func GetRandomPoemByEmotion(emotion string) (string, bool) {
 	poems, exists := EmotionPoemsMap[emotion]
 	if !exists || len(poems) == 0 {
+		Logger.Printf("Нет стихов для эмоции '%s'", emotion)
 		return "", false
 	}
-
 	randomIndex := getRandomGenerator().Intn(len(poems))
+	Logger.Printf("Выбран случайный стих для эмоции '%s': %s", emotion, poems[randomIndex].Text)
 	return poems[randomIndex].Text, true
 }
 
@@ -45,7 +46,12 @@ func GetAllPoems() []Poem {
 // GetRandomPoem возвращает случайный стих из всех доступных
 func GetRandomPoem() string {
 	allPoems := GetAllPoems()
+	if len(allPoems) == 0 {
+		Logger.Printf("Нет доступных стихов для выбора случайного стиха.")
+		return ""
+	}
 	randomIndex := getRandomGenerator().Intn(len(allPoems))
+	Logger.Printf("Выбран случайный стих: %s", allPoems[randomIndex].Text)
 	return allPoems[randomIndex].Text
 }
 
@@ -105,8 +111,11 @@ func LoadPoemsFromFile(filename string) error {
 		return err
 	}
 
+	Logger.Printf("Загружено %d эмоций и %d стихов", len(EmotionPoemsMap), len(GetAllPoems()))
+
 	Logger.Printf("Стихи успешно загружены из файла %s", filename)
 	return nil
+
 }
 
 // SplitLongMessage разбивает длинный текст на части по 4096 символов
@@ -153,19 +162,4 @@ func ListAllPoems(emotionFilter string) string {
 	}
 
 	return result.String()
-}
-
-func ConvertToEmotionKey(text string) string {
-	switch text {
-	case ":)":
-		return ":)"
-	case ":(":
-		return ":("
-	case "#радость":
-		return "#радость"
-	case "#грусть":
-		return "#грусть"
-	default:
-		return text // Если это эмодзи или другой текст, возвращаем как есть
-	}
 }
