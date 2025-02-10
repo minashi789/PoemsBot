@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-const adminID int64 = 958829846 // Замените на ваш Telegram ID
+//const adminID int64 = ID // Замените на ваш Telegram ID
 
 // StartBot запускает Telegram-бота
 func StartBot(botToken string) {
