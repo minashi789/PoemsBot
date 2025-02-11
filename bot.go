@@ -35,8 +35,8 @@ func StartBot(botToken string) {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-		switch {
-		case update.Message.IsCommand():
+		// Обработка команд
+		if update.Message.IsCommand() {
 			switch update.Message.Command() {
 			case "start":
 				msg.Text = "Привет! Отправь мне эмоцию 😊, 😞, 😂, ❤️, 🥔, 🩸 и я пришлю тебе стих! Чтобы ознакомиться со всем функционалом бота используйте команду /help"
@@ -50,17 +50,14 @@ func StartBot(botToken string) {
 					Logger.Printf("Пользователь %s (%d) попытался выполнить команду /addpoem без прав администратора", update.Message.From.UserName, update.Message.From.ID)
 					break
 				}
-
 				args := strings.SplitN(update.Message.CommandArguments(), " ", 2)
 				if len(args) < 2 {
 					msg.Text = "Использование: /addpoem <эмоция> <текст>"
 					Logger.Printf("Администратор %s (%d) выполнил команду /addpoem с некорректными аргументами", update.Message.From.UserName, update.Message.From.ID)
 					break
 				}
-
 				emotion := args[0]
 				poemText := args[1]
-
 				AddPoem(emotion, poemText)
 				SavePoemsToFile("poems.json")
 				msg.Text = "Стих успешно добавлен!"
@@ -71,17 +68,14 @@ func StartBot(botToken string) {
 					Logger.Printf("Пользователь %s (%d) попытался выполнить команду /removepoem без прав администратора", update.Message.From.UserName, update.Message.From.ID)
 					break
 				}
-
 				args := strings.SplitN(update.Message.CommandArguments(), " ", 2)
 				if len(args) < 2 {
 					msg.Text = "Использование: /removepoem <эмоция> <текст>"
 					Logger.Printf("Администратор %s (%d) выполнил команду /removepoem с некорректными аргументами", update.Message.From.UserName, update.Message.From.ID)
 					break
 				}
-
 				emotion := args[0]
 				poemText := args[1]
-
 				removed := RemovePoem(emotion, poemText)
 				if removed {
 					SavePoemsToFile("poems.json")
@@ -92,26 +86,19 @@ func StartBot(botToken string) {
 					Logger.Printf("Администратор %s (%d) попытался удалить несуществующий стих для эмоции '%s': %s", update.Message.From.UserName, update.Message.From.ID, emotion, poemText)
 				}
 			case "listpoems":
-				// Получаем аргументы команды (фильтр по эмоции)
 				args := strings.SplitN(update.Message.CommandArguments(), " ", 1)
 				emotionFilter := ""
 				if len(args) > 0 {
 					emotionFilter = args[0]
 				}
-
-				// Получаем все стихи
 				poemsList := ListAllPoems(emotionFilter)
 				if poemsList == "" {
 					msg.Text = "Стихи не найдены."
 					Logger.Printf("Пользователь %s (%d) выполнил команду /listpoems для эмоции '%s', но стихи не найдены", update.Message.From.UserName, update.Message.From.ID, emotionFilter)
 				} else {
-					// Разбиваем текст на части, если он слишком длинный
 					parts := SplitLongMessage(poemsList)
-
-					// Отправляем каждую часть как отдельное сообщение
 					for _, part := range parts {
 						msg.Text = part
-						msg.ParseMode = "Markdown" // Включаем форматирование Markdown
 						bot.Send(msg)
 					}
 					Logger.Printf("Пользователь %s (%d) выполнил команду /listpoems для эмоции '%s'", update.Message.From.UserName, update.Message.From.ID, emotionFilter)
@@ -122,24 +109,31 @@ func StartBot(botToken string) {
 				/random - Получить случайный стих.
 				/listpoems [эмоция] - Показать все стихи или только для указанной эмоции (например, /listpoems 😊).
 				Отправьте эмоцию (например, 😊, 😞, 😂, ❤️, 🥔, 🩸) - Получить случайный стих для этой эмоции.
-				
+	
 				Админские команды:
 				/addpoem <эмоция> <текст> - Добавить новый стих (только для администратора).
 				/removepoem <эмоция> <текст> - Удалить стих (только для администратора).`
 				Logger.Printf("Пользователь %s (%d) выполнил команду /help", update.Message.From.UserName, update.Message.From.ID)
-				bot.Send(msg) // Переносим отправку сообщения сюда
 			default:
-				emotion := update.Message.Text
-				Logger.Printf("Преобразованная эмоция: %s", emotion)
-				if poem, exists := GetRandomPoemByEmotion(emotion); exists {
-					msg.Text = poem
-					Logger.Printf("Пользователь %s (%d) получил стих для эмоции '%s'", update.Message.From.UserName, update.Message.From.ID, emotion)
-				} else {
-					msg.Text = "Я не знаю такой эмоции 😕\nПопробуй одну из этих: 😊, 😞, 😂, ❤️, 🥔, 🩸."
-					Logger.Printf("Пользователь %s (%d) отправил неизвестную эмоцию: %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
-				}
-				bot.Send(msg) // Переносим отправку сообщения сюда
+				msg.Text = "Неизвестная команда. Используйте /help для просмотра списка команд."
+				Logger.Printf("Пользователь %s (%d) отправил неизвестную команду: %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 			}
+			bot.Send(msg)
+		}
+
+		// Обработка эмодзи и других текстовых сообщений
+		switch update.Message.Text {
+		case "😊", "😞", "😂", "❤️", "🥔", "🩸":
+			emotion := update.Message.Text
+			Logger.Printf("Получена эмоция: %s", emotion)
+			if poem, exists := GetRandomPoemByEmotion(emotion); exists {
+				msg.Text = poem
+				Logger.Printf("Пользователь %s (%d) получил стих для эмоции '%s'", update.Message.From.UserName, update.Message.From.ID, emotion)
+			} else {
+				msg.Text = "Я не знаю такой эмоции 😕\nПопробуй одну из этих: 😊, 😞, 😂, ❤️, 🥔, 🩸."
+				Logger.Printf("Пользователь %s (%d) отправил неизвестную эмоцию: %s", update.Message.From.UserName, update.Message.From.ID, emotion)
+			}
+			bot.Send(msg)
 		}
 	}
 }

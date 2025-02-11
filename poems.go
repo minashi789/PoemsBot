@@ -112,10 +112,10 @@ func LoadPoemsFromFile(filename string) error {
 	}
 
 	Logger.Printf("Загружено %d эмоций и %d стихов", len(EmotionPoemsMap), len(GetAllPoems()))
-
-	Logger.Printf("Стихи успешно загружены из файла %s", filename)
+	for emotion, poems := range EmotionPoemsMap {
+		Logger.Printf("Эмоция '%s': %d стихов", emotion, len(poems))
+	}
 	return nil
-
 }
 
 // SplitLongMessage разбивает длинный текст на части по 4096 символов
