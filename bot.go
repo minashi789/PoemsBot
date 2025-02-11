@@ -39,7 +39,7 @@ func StartBot(botToken string) {
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
 			case "start":
-				msg.Text = "Привет! Отправь мне эмоцию 😊, 😞, 😂, ❤️, 🥔, 🩸 и я пришлю тебе стих! Чтобы ознакомиться со всем функционалом бота используйте команду /help"
+				msg.Text = "Привет! Отправь мне эмоцию 😊, 😞, 😢, ❤️, 🥔, 🩸 и я пришлю тебе стих! Чтобы ознакомиться со всем функционалом бота используйте команду /help"
 				Logger.Printf("Пользователь %s (%d) выполнил команду /start", update.Message.From.UserName, update.Message.From.ID)
 			case "random":
 				msg.Text = GetRandomPoem()
@@ -108,7 +108,7 @@ func StartBot(botToken string) {
 				/start - Начать работу с ботом.
 				/random - Получить случайный стих.
 				/listpoems [эмоция] - Показать все стихи или только для указанной эмоции (например, /listpoems 😊).
-				Отправьте эмоцию (например, 😊, 😞, 😂, ❤️, 🥔, 🩸) - Получить случайный стих для этой эмоции.
+				Отправьте эмоцию (например, 😊, 😞, 😢, ❤️, 🥔, 🩸) - Получить случайный стих для этой эмоции.
 	
 				Админские команды:
 				/addpoem <эмоция> <текст> - Добавить новый стих (только для администратора).
@@ -123,14 +123,14 @@ func StartBot(botToken string) {
 
 		// Обработка эмодзи и других текстовых сообщений
 		switch update.Message.Text {
-		case "😊", "😞", "😂", "❤️", "🥔", "🩸":
+		case "😊", "😞", "😢", "❤️", "🥔", "🩸":
 			emotion := update.Message.Text
 			Logger.Printf("Получена эмоция: %s", emotion)
 			if poem, exists := GetRandomPoemByEmotion(emotion); exists {
 				msg.Text = poem
 				Logger.Printf("Пользователь %s (%d) получил стих для эмоции '%s'", update.Message.From.UserName, update.Message.From.ID, emotion)
 			} else {
-				msg.Text = "Я не знаю такой эмоции 😕\nПопробуй одну из этих: 😊, 😞, 😂, ❤️, 🥔, 🩸."
+				msg.Text = "Я не знаю такой эмоции 😕\nПопробуй одну из этих: 😊, 😞, 😢, ❤️, 🥔, 🩸."
 				Logger.Printf("Пользователь %s (%d) отправил неизвестную эмоцию: %s", update.Message.From.UserName, update.Message.From.ID, emotion)
 			}
 			bot.Send(msg)
